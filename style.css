@@ -2132,7 +2132,7 @@ h1, h2, h3 {
   .about-photo-frame > .about-bunny-deco {
     width: 68px;
     top: 75%;
-    left: -8%;
+    left: -15%;
     right: auto;
     bottom: auto;
 
@@ -2142,16 +2142,16 @@ h1, h2, h3 {
   /* 3. CONTACT HEADING BUNNY */
   .contact-side-bunny {
     position: static;
-    width: 48px;
+    width: 80px;
 
-    transform: rotate(-8deg);
+    transform: rotate(8deg);
   }
 
   /* 4. CONTACT FORM BUNNY */
   .contact2-bunny-deco {
     width: 58px;
-    top: 0;
-    right: 12px;
+    top: -15px;
+    right: 16px;
     left: auto;
 
     transform: translateY(-78%) rotate(0deg);
@@ -2160,9 +2160,9 @@ h1, h2, h3 {
   /* 5. FOOTER BUNNY */
   .footer-bunny-deco {
     position: relative;
-    width: 58px;
-    top: 0;
-    right: 0;
+    width: 80px;
+    top: -75px;
+    right: 90px;
     left: auto;
     margin-right: 0;
   }
