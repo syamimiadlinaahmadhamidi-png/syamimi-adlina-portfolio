@@ -36,6 +36,7 @@ document.getElementById("contact-email-label").textContent = CONTACT_EMAIL;
 
 
 
+
 /* ==================================
    CONTACT FORM - EMAIL SUBMISSION
 ================================== */
@@ -48,6 +49,7 @@ const submitButton = contactForm.querySelector(
 );
 
 let pendingContactId = null;
+let contactPollTimer = null;
 let contactTimeout = null;
 
 function resetContactButton() {
@@ -55,58 +57,73 @@ function resetContactButton() {
   submitButton.textContent = "Send Message ↗";
 }
 
-// Receive confirmation from Google Apps Script
-window.addEventListener("message", (event) => {
-  let hostname = "";
+function finishContact(status) {
+  if (!pendingContactId) return;
 
-  try {
-    hostname = new URL(event.origin).hostname;
-  } catch {
-    return;
+  clearInterval(contactPollTimer);
+  clearTimeout(contactTimeout);
+
+  pendingContactId = null;
+  resetContactButton();
+
+  if (status === "success") {
+    formStatus.textContent = "Message sent successfully!";
+    contactForm.reset();
+
+    // Use the original cottagecore notification
+    showContactSuccessToast();
+
+  } else if (status === "failed") {
+    formStatus.textContent =
+      "Unable to send message. Please try again.";
+
+  } else {
+    formStatus.textContent =
+      "Delivery could not be confirmed. Please check your email before trying again.";
   }
+}
 
-  const trustedOrigin =
-    event.origin.startsWith("https://") &&
-    (
-      hostname === "script.google.com" ||
-      hostname === "script.googleusercontent.com" ||
-      hostname.endsWith("-script.googleusercontent.com")
-    );
-
-  if (!trustedOrigin) return;
-
-  const data = event.data;
-
+// Receive delivery status from Google Apps Script.
+window.portfolioContactStatus = function (result) {
   if (
-    !data ||
-    data.type !== "portfolio-contact-result" ||
+    !result ||
     !pendingContactId ||
-    data.id !== pendingContactId
+    result.id !== pendingContactId
   ) {
     return;
   }
 
-  clearTimeout(contactTimeout);
-  pendingContactId = null;
-  resetContactButton();
-
-  if (data.success === true) {
-    formStatus.textContent = "Message sent successfully!";
-    contactForm.reset();
-
-    // Existing cottagecore success notification
-    showContactSuccessToast();
-  } else {
-    formStatus.textContent =
-      "Unable to send message. Please try again.";
+  if (result.status === "success") {
+    finishContact("success");
+  } else if (result.status === "failed") {
+    finishContact("failed");
   }
-});
+};
 
-// Contact Form Submission
+// Check status without fetch/CORS.
+function checkContactStatus(id) {
+  if (pendingContactId !== id) return;
+
+  const script = document.createElement("script");
+
+  script.src =
+    contactForm.action +
+    "?id=" + encodeURIComponent(id) +
+    "&t=" + Date.now();
+
+  script.async = true;
+
+  script.onload = () => script.remove();
+  script.onerror = () => script.remove();
+
+  document.head.appendChild(script);
+}
+
 contactForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   if (!contactForm.reportValidity()) return;
+  if (pendingContactId) return;
 
   const name = document
     .getElementById("contact-name").value.trim();
@@ -132,32 +149,45 @@ contactForm.addEventListener("submit", async (event) => {
   submitButton.textContent = "Sending...";
   formStatus.textContent = "Sending your message...";
 
-  // LIVE PORTFOLIO - Google Apps Script
+  // LIVE WEBSITE - Google Apps Script
   if (!isLocalDevelopment) {
-    pendingContactId =
-      Date.now().toString(36) +
-      "-" +
-      Math.random().toString(36).slice(2);
+    try {
+      const id = crypto.randomUUID();
 
-    document.getElementById("submission-id").value =
-      pendingContactId;
+      pendingContactId = id;
 
-    contactTimeout = setTimeout(() => {
-      if (!pendingContactId) return;
+      document.getElementById("submission-id").value = id;
 
-      pendingContactId = null;
-      resetContactButton();
+      // Send the form to the hidden iframe.
+      HTMLFormElement.prototype.submit.call(contactForm);
 
-      formStatus.textContent =
-        "Unable to confirm delivery. Please check your email or try again.";
-    }, 20000);
+      // Poll for the actual email delivery result.
+      checkContactStatus(id);
 
-    // Submit to hidden iframe without leaving portfolio
-    HTMLFormElement.prototype.submit.call(contactForm);
+      contactPollTimer = setInterval(() => {
+        checkContactStatus(id);
+      }, 2000);
+
+      contactTimeout = setTimeout(() => {
+        finishContact("timeout");
+      }, 30000);
+
+    } catch (error) {
+      console.error("Contact form error:", error);
+
+      if (pendingContactId) {
+        finishContact("failed");
+      } else {
+        resetContactButton();
+        formStatus.textContent =
+          "Unable to send message. Please try again.";
+      }
+    }
+
     return;
   }
 
-  // LOCALHOST - Existing Node.js Backend
+  // LOCALHOST - Existing Node.js backend
   try {
     const response = await fetch(
       "http://localhost:3000/api/contact",
@@ -182,10 +212,9 @@ contactForm.addEventListener("submit", async (event) => {
       );
     }
 
-    formStatus.textContent =
-      "Message sent successfully!";
-
+    formStatus.textContent = "Message sent successfully!";
     contactForm.reset();
+
     showContactSuccessToast();
 
   } catch (error) {
@@ -198,6 +227,7 @@ contactForm.addEventListener("submit", async (event) => {
     resetContactButton();
   }
 });
+
 
 
 
