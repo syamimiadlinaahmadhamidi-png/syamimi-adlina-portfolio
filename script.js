@@ -46,10 +46,22 @@ const submitButton = contactForm.querySelector(
   'button[type="submit"]'
 );
 
+
 contactForm.addEventListener("submit", async (event) => {
+
+  // On the live website, allow HTML form submission
+  // directly to FormSubmit without using fetch().
+  if (!["localhost", "127.0.0.1"].includes(
+    window.location.hostname
+  )) {
+    return;
+  }
+
+  // On localhost, continue using Node.js backend
   event.preventDefault();
 
   if (!contactForm.reportValidity()) return;
+
 
   const name = document
     .getElementById("contact-name").value.trim();
