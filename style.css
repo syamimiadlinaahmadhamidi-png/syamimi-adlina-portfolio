@@ -1998,3 +1998,18 @@ h1, h2, h3 {
   }
 
 }
+
+
+.contact-fallback {
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--body);
+}
+
+.contact-fallback a {
+  color: var(--accent);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
