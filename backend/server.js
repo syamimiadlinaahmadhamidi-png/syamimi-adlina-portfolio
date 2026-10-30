@@ -124,21 +124,6 @@ ${message.trim()}
 });
 
 
-const mailOptions = {
-  from: process.env.SMTP_USER,
-  to: process.env.CONTACT_EMAIL,
-  replyTo: email,
-  subject: `Portfolio Message from ${name}`,
-  text: `
-Name: ${name}
-Email: ${email}
-
-Message:
-${message}
-  `
-};
-
-
 // Start backend
 app.listen(PORT, () => {
   console.log(`Backend running at http://localhost:${PORT}`);
