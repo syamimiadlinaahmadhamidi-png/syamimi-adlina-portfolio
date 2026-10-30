@@ -73,23 +73,61 @@ contactForm.addEventListener("submit", async (event) => {
     "127.0.0.1"
   ].includes(window.location.hostname);
 
-  if (!isLocalDevelopment) {
-    const subject = encodeURIComponent(
-      `Portfolio Message from ${name}`
+  
+if (!isLocalDevelopment) {
+  submitButton.disabled = true;
+  submitButton.textContent = "Sending...";
+  formStatus.textContent = "Sending your message...";
+
+  try {
+    const response = await fetch(
+      `https://formsubmit.co/ajax/${encodeURIComponent(CONTACT_EMAIL)}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        body: JSON.stringify({
+          name: name,
+          email: email,
+          message: message,
+          _subject: `Portfolio Message from ${name}`
+        })
+      }
     );
 
-    const body = encodeURIComponent(
-      `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`
-    );
+    const result = await response.json();
+
+    const success =
+      result.success === true ||
+      result.success === "true";
+
+    if (!response.ok || !success) {
+      throw new Error(
+        result.message || "Unable to send message."
+      );
+    }
 
     formStatus.textContent =
-      "Your email app will open. Please press Send to finish.";
+      "Message sent successfully!";
 
-    window.location.href =
-      `mailto:${CONTACT_EMAIL}?subject=${subject}&body=${body}`;
+    contactForm.reset();
+    showContactSuccessToast();
 
-    return;
+  } catch (error) {
+    console.error("Contact form error:", error);
+
+    formStatus.textContent =
+      error.message || "Unable to send message.";
+  } finally {
+    submitButton.disabled = false;
+    submitButton.textContent = "Send Message ↗";
   }
+
+  return;
+}
+
 
 
   submitButton.disabled = true;
