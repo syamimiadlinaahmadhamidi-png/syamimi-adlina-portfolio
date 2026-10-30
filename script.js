@@ -80,22 +80,23 @@ if (!isLocalDevelopment) {
   formStatus.textContent = "Sending your message...";
 
   try {
-    const response = await fetch(
-      `https://formsubmit.co/ajax/${encodeURIComponent(CONTACT_EMAIL)}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json"
-        },
-        body: JSON.stringify({
-          name: name,
-          email: email,
-          message: message,
-          _subject: `Portfolio Message from ${name}`
-        })
-      }
-    );
+    
+const response = await fetch(
+  `https://formsubmit.co/ajax/${CONTACT_EMAIL}`,
+  {
+    method: "POST",
+    headers: {
+      "Accept": "application/json"
+    },
+    body: new URLSearchParams({
+      name: name,
+      email: email,
+      message: message,
+      _subject: `Portfolio Message from ${name}`
+    })
+  }
+);
+
 
     const result = await response.json();
 
