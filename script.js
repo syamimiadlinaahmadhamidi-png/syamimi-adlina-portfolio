@@ -66,6 +66,32 @@ contactForm.addEventListener("submit", async (event) => {
     return;
   }
 
+  
+  // Public website: open visitor's email app
+  const isLocalDevelopment = [
+    "localhost",
+    "127.0.0.1"
+  ].includes(window.location.hostname);
+
+  if (!isLocalDevelopment) {
+    const subject = encodeURIComponent(
+      `Portfolio Message from ${name}`
+    );
+
+    const body = encodeURIComponent(
+      `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`
+    );
+
+    formStatus.textContent =
+      "Your email app will open. Please press Send to finish.";
+
+    window.location.href =
+      `mailto:${CONTACT_EMAIL}?subject=${subject}&body=${body}`;
+
+    return;
+  }
+
+
   submitButton.disabled = true;
   submitButton.textContent = "Sending...";
 
