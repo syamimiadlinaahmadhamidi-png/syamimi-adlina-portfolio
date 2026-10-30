@@ -2109,3 +2109,62 @@ h1, h2, h3 {
     transform: translateY(0) scale(1);
   }
 }
+
+
+/* ==================================
+   MOBILE BUNNY POSITION FIX
+================================== */
+
+@media (max-width: 600px) {
+
+  /* 1. HERO BUNNY */
+  .hero-bunny-deco {
+    width: 24%;
+    top: 20%;
+    left: 87%;
+    right: auto;
+    bottom: auto;
+
+    transform: translate(-50%, -85%) rotate(6deg);
+  }
+
+  /* 2. ABOUT ME BUNNY */
+  .about-photo-frame > .about-bunny-deco {
+    width: 68px;
+    top: 75%;
+    left: -8%;
+    right: auto;
+    bottom: auto;
+
+    transform: rotate(2deg);
+  }
+
+  /* 3. CONTACT HEADING BUNNY */
+  .contact-side-bunny {
+    position: static;
+    width: 48px;
+
+    transform: rotate(-8deg);
+  }
+
+  /* 4. CONTACT FORM BUNNY */
+  .contact2-bunny-deco {
+    width: 58px;
+    top: 0;
+    right: 12px;
+    left: auto;
+
+    transform: translateY(-78%) rotate(0deg);
+  }
+
+  /* 5. FOOTER BUNNY */
+  .footer-bunny-deco {
+    position: relative;
+    width: 58px;
+    top: 0;
+    right: 0;
+    left: auto;
+    margin-right: 0;
+  }
+
+}
