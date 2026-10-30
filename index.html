@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
   
-<script src="script.js?v=4" defer></script>
+<script src="script.js?v=5" defer></script>
 
 </head>
 <body>
@@ -501,7 +501,14 @@
   id="contact-form"
   action="https://script.google.com/macros/s/AKfycbwCA2jOi6qVGJezuncVpmG73LKNroARalDR8-VmjKLbUOcnK4kFXse_jQgjdqb_04gb/exec"
   method="POST"
+  target="contact-result-frame"
 >
+<input
+  type="hidden"
+  id="submission-id"
+  name="submission_id"
+/>
+
 
   <input
     type="hidden"
@@ -554,14 +561,24 @@
 >
   Your message will be sent directly to my inbox.
 </p>
-
-
-
-
-
-
-
         </form>
+
+        
+<iframe
+  name="contact-result-frame"
+  id="contact-result-frame"
+  title="Contact submission response"
+  hidden
+></iframe>
+
+        <div id="success-popup" class="success-popup hidden">
+  <div class="success-popup-card">
+    <div class="success-icon">✓</div>
+    <h3>Message sent successfully!</h3>
+    <p>Thank you for reaching out. I’ll get back to you soon.</p>
+    <button id="close-popup" type="button">Close</button>
+  </div>
+</div>
       </div>
     </section>
   </main>

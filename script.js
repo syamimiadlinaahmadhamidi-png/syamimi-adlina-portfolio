@@ -35,8 +35,9 @@ document.getElementById("year").textContent = new Date().getFullYear();
 document.getElementById("contact-email-label").textContent = CONTACT_EMAIL;
 
 
+
 /* ==================================
-   CONTACT FORM - BACKEND API
+   CONTACT FORM - EMAIL SUBMISSION
 ================================== */
 
 const contactForm = document.getElementById("contact-form");
@@ -46,22 +47,66 @@ const submitButton = contactForm.querySelector(
   'button[type="submit"]'
 );
 
+let pendingContactId = null;
+let contactTimeout = null;
 
-contactForm.addEventListener("submit", async (event) => {
+function resetContactButton() {
+  submitButton.disabled = false;
+  submitButton.textContent = "Send Message ↗";
+}
 
-  // On the live website, allow HTML form submission
-  // directly to FormSubmit without using fetch().
-  if (!["localhost", "127.0.0.1"].includes(
-    window.location.hostname
-  )) {
+// Receive confirmation from Google Apps Script
+window.addEventListener("message", (event) => {
+  let hostname = "";
+
+  try {
+    hostname = new URL(event.origin).hostname;
+  } catch {
     return;
   }
 
-  // On localhost, continue using Node.js backend
+  const trustedOrigin =
+    event.origin.startsWith("https://") &&
+    (
+      hostname === "script.google.com" ||
+      hostname === "script.googleusercontent.com" ||
+      hostname.endsWith("-script.googleusercontent.com")
+    );
+
+  if (!trustedOrigin) return;
+
+  const data = event.data;
+
+  if (
+    !data ||
+    data.type !== "portfolio-contact-result" ||
+    !pendingContactId ||
+    data.id !== pendingContactId
+  ) {
+    return;
+  }
+
+  clearTimeout(contactTimeout);
+  pendingContactId = null;
+  resetContactButton();
+
+  if (data.success === true) {
+    formStatus.textContent = "Message sent successfully!";
+    contactForm.reset();
+
+    // Existing cottagecore success notification
+    showContactSuccessToast();
+  } else {
+    formStatus.textContent =
+      "Unable to send message. Please try again.";
+  }
+});
+
+// Contact Form Submission
+contactForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   if (!contactForm.reportValidity()) return;
-
 
   const name = document
     .getElementById("contact-name").value.trim();
@@ -78,76 +123,41 @@ contactForm.addEventListener("submit", async (event) => {
     return;
   }
 
-  
-  // Public website: open visitor's email app
   const isLocalDevelopment = [
     "localhost",
     "127.0.0.1"
   ].includes(window.location.hostname);
 
-  
-if (!isLocalDevelopment) {
   submitButton.disabled = true;
   submitButton.textContent = "Sending...";
   formStatus.textContent = "Sending your message...";
 
-  try {
-    
-const response = await fetch(
-  `https://formsubmit.co/ajax/${CONTACT_EMAIL}`,
-  {
-    method: "POST",
-    headers: {
-      "Accept": "application/json"
-    },
-    body: new URLSearchParams({
-      name: name,
-      email: email,
-      message: message,
-      _subject: `Portfolio Message from ${name}`
-    })
-  }
-);
+  // LIVE PORTFOLIO - Google Apps Script
+  if (!isLocalDevelopment) {
+    pendingContactId =
+      Date.now().toString(36) +
+      "-" +
+      Math.random().toString(36).slice(2);
 
+    document.getElementById("submission-id").value =
+      pendingContactId;
 
-    const result = await response.json();
+    contactTimeout = setTimeout(() => {
+      if (!pendingContactId) return;
 
-    const success =
-      result.success === true ||
-      result.success === "true";
+      pendingContactId = null;
+      resetContactButton();
 
-    if (!response.ok || !success) {
-      throw new Error(
-        result.message || "Unable to send message."
-      );
-    }
+      formStatus.textContent =
+        "Unable to confirm delivery. Please check your email or try again.";
+    }, 20000);
 
-    formStatus.textContent =
-      "Message sent successfully!";
-
-    contactForm.reset();
-    showContactSuccessToast();
-
-  } catch (error) {
-    console.error("Contact form error:", error);
-
-    formStatus.textContent =
-      error.message || "Unable to send message.";
-  } finally {
-    submitButton.disabled = false;
-    submitButton.textContent = "Send Message ↗";
+    // Submit to hidden iframe without leaving portfolio
+    HTMLFormElement.prototype.submit.call(contactForm);
+    return;
   }
 
-  return;
-}
-
-
-
-  submitButton.disabled = true;
-  submitButton.textContent = "Sending...";
-
-  formStatus.textContent = "Sending your message...";
-
+  // LOCALHOST - Existing Node.js Backend
   try {
     const response = await fetch(
       "http://localhost:3000/api/contact",
@@ -172,15 +182,11 @@ const response = await fetch(
       );
     }
 
-  
-formStatus.textContent =
-  "Message sent successfully!";
+    formStatus.textContent =
+      "Message sent successfully!";
 
-contactForm.reset();
-
-// Show animated notification
-showContactSuccessToast();
-
+    contactForm.reset();
+    showContactSuccessToast();
 
   } catch (error) {
     console.error("Contact form error:", error);
@@ -189,10 +195,10 @@ showContactSuccessToast();
       "Unable to send message. Please try again.";
 
   } finally {
-    submitButton.disabled = false;
-    submitButton.textContent = "Send Message ↗";
+    resetContactButton();
   }
 });
+
 
 
 /* ==================================
