@@ -2000,26 +2000,26 @@ h1, h2, h3 {
 }
 
 
-.contact-fallback {
-  margin-top: 12px;
-  font-size: 13px;
-  color: var(--body);
+/* Clickable Email Contact */
+
+.contact-email-link {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  border-radius: 12px;
+  transition: transform 0.3s ease;
 }
 
-.contact-fallback a {
+.contact-email-link:hover {
+  transform: translateX(5px);
+}
+
+.contact-email-link:hover strong {
   color: var(--accent);
-  font-weight: 700;
-  text-decoration: underline;
-  text-underline-offset: 3px;
 }
 
-
-.contact-email-copy {
-  display: block;
-  margin-top: 8px;
-  font-size: 12px;
-  color: var(--body);
-  overflow-wrap: anywhere;
-  user-select: text;
+.contact-email-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
 }
 
